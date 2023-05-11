@@ -1,0 +1,221 @@
+#include <iostream>
+#include <vector>
+#include <fstream>
+#include <algorithm>
+#include <queue>
+#include <unordered_map>
+#include <chrono>
+
+class Podaci {
+public:
+    //------------------pristup podacima---------------------------------------------------------
+    double vrVektora(int i) {
+        return podaciVektor[i];
+    }
+
+    double vrPrReda() {
+        return podaciPrioritet.top();
+    }
+
+    double vrPoKljucu(int kljuc) {
+        return podaciMapa[kljuc];
+    }
+    //------------------pretrazivanje (jedan i vise po kljucu ili vrijednosti)---------------------------------------------------------
+    double vektPoMjestu(int mj) {
+        return podaciVektor[mj];
+    }
+
+    int vektPoVrijednosti(double vrijednost) {
+        for (int i = 1; i <= podaciVektor.size(); i++) {
+            if (podaciVektor[i] == vrijednost) {
+                return i;
+            } else {
+                return NULL;
+            }
+        }
+    }
+
+    void vektVise(double vrijednost) {
+        for(int i = 0; i < podaciVektor.size(); i++) {
+            if (podaciVektor[i] == vrijednost) {
+                std::cout << "Pronadeno: " << podaciVektor[i] << std::endl;
+            }
+        }
+    }
+
+    double prioritetniRedPoMjestu(int mj) {
+        for (int i = 0; i < mj; i++) {
+            podaciPrioritet.pop();
+        }
+        return podaciPrioritet.top();
+    }
+
+    bool prioritetniRedPoVrijednosti(int vrijednost) {
+        for (int i = 0; i < podaciPrioritet.size(); i++) {
+            if (podaciPrioritet.top() == vrijednost) {
+                return true;
+            }
+            podaciPrioritet.pop();
+        }
+        return false;
+    }
+
+    void prioritVise(double vrijednost) {
+        for(int i = 0; i < podaciPrioritet.size(); i++) {
+            if (podaciPrioritet.top() == vrijednost) {
+                std::cout << "Pronadeno: " << podaciPrioritet.top() << std::endl;
+                podaciPrioritet.pop();
+            }
+            podaciPrioritet.pop();
+        }
+    }
+
+    double mapaPoKljucu(int key) {
+        std::unordered_map<int, double>::const_iterator  it = podaciMapa.find(key);
+        if(it == podaciMapa.end()) {
+            return NULL;
+        } else {
+            return it->second;
+        }
+    }
+    //------------------min/max (jedan i vise po kljucu ili vrijednosti, obicno)---------------------------------------------------------
+    double maxVektor() {
+        return podaciVektor[podaciVektor.size() - 1];
+    }
+
+    double minVektor() {
+        return podaciVektor[0];
+    }
+
+    void maxVektorN(int n) {
+        for (int i = 0; i < n; i++) {
+            std::cout << podaciVektor[podaciVektor.size()-1-i] << std::endl;
+        }
+    }
+
+    void minVektorN(int n) {
+        for (int i = 0; i < n; i++) {
+            std::cout << podaciVektor[i] << std::endl;
+        }
+    }
+
+    double maxVrijednost() {
+        return podaciMapa[podaciMapa.size()-1];
+    }
+
+    double maxVrijednostiN(int n) {
+        for (int i = 0; i < n; i++) {
+            std::cout << podaciMapa[podaciMapa.size()-1-i] << std::endl;
+        }
+    }
+    //------------------brisanje (jedan i vise po kljucu ili vrijednosti)---------------------------------------------------------
+    void brisiPoKljucu(int kljuc) {
+        podaciMapa.erase(kljuc);
+    }
+
+    void brisiPoVrijednosti(double vrijednost) {
+        podaciMapa.erase(std::lower_bound(podaciVektor.begin(), podaciVektor.end(), vrijednost) - podaciVektor.begin());
+    }
+
+    void obrisiVisePoKljucu(std::vector<int> v) {
+        for(int i = 0; i < v.size(); i++) {
+            brisiPoKljucu(v[i]);
+        }
+    }
+    void obrisiVisePoVrijednosti(std::vector<double> v) {
+        for(int i = 0; i < v.size(); i++) {
+            brisiPoVrijednosti(v[i]);
+        }
+    }
+    //------------------dodavanje (jedan i vise po kljucu ili vrijednosti, obicno)---------------------------------------------------------
+    void dodajUVektor(double vrijednost) {
+        podaciVektor.push_back(vrijednost);
+    }
+    void dodajViseUVektor(std::vector<double> vrijednosti) {
+        for(double vrijednost : vrijednosti) {
+            dodajUVektor(vrijednost);
+        }
+    }
+    void dodajUMapu(int kljuc, double vrijednost) {
+        std::pair<int, double> par(kljuc, vrijednost);
+        podaciMapa.insert(par);
+    }
+    void dodajViseUMapu(std::unordered_map<int, double> parovi) {
+        for(auto it = parovi.begin(); it != parovi.end(); it++) {
+            dodajUMapu(it->first, it->second);
+        }
+    }
+    void dodajUPriorRed(double vrijednost) {
+        podaciPrioritet.push(vrijednost);
+    }
+    void dodajViseUPriorRed(std::vector<double> vrijednosti) {
+        for(double vrijednost : vrijednosti) {
+            dodajUPriorRed(vrijednost);
+        }
+    }
+
+//---------------------------------------------------------------------------
+    std::vector<double> podaciVektor;
+    std::priority_queue<double> podaciPrioritet;
+    std::unordered_map<int, double> podaciMapa;
+};
+
+//---------------------------------------------------------------------------
+void datoteka(Podaci &podaci1, Podaci &podaci2, Podaci &podaci3) {
+    std::ifstream dat ("C://Users/Iva/Downloads/measures_v2.csv");
+    std::string linija, rijec;
+    double vrijednost1, vrijednost2, vrijednost3;
+    int brojac = 0;
+    if(dat.is_open()) {
+        std::cout << "Otvorena je datoteka!" << std::endl;
+        getline(dat, linija);
+        while (getline(dat, linija) && brojac < 500000) {
+            vrijednost1 = std::stod(linija.substr(0, linija.find(",")));
+            linija.erase(0, linija.find(",") + 1);
+            linija.erase(0, linija.find(",") + 1);
+            linija.erase(0, linija.find(",") + 1);
+            vrijednost2 = std::stod(linija.substr(0, linija.find(",")));
+            linija.erase(0, linija.find(",") + 1);
+            linija.erase(0, linija.find(",") + 1);
+            vrijednost3 = std::stod(linija.substr(0, linija.find(",")));
+            podaci1.podaciVektor.push_back(vrijednost1);
+            podaci2.podaciPrioritet.push(vrijednost2);
+            podaci3.podaciMapa.insert({brojac+1, vrijednost3});
+            brojac++;
+        }
+    } else {
+        std::cout << "Datoteka nije otvorena" << std::endl;
+    }
+    dat.close();
+}
+
+//---------------------------------------------------------------------------
+bool usporedi(std::pair<int, double>& mapa1, std::pair<int, double>& mapa2) {
+    return mapa1.second < mapa2.second;
+}
+
+void sortiraj(std::unordered_map<int, double>& mapa) {
+    std::vector<std::pair<int, double>> vektorParova;
+
+    //kopira parove kljuc-vrijednost iz mape u vektor s parovima
+    for (auto& it : vektorParova) {
+        vektorParova.push_back(it);
+    }
+
+    sort(vektorParova.begin(), vektorParova.end(), usporedi);
+}
+
+//---------------------------------------------------------------------------
+int main() {
+    Podaci podaci1, podaci2, podaci3;
+    datoteka(podaci1, podaci2, podaci3);
+
+    std::sort(podaci1.podaciVektor.begin(), podaci1.podaciVektor.end());
+    sortiraj(podaci3.podaciMapa);
+
+    auto start = std::chrono::high_resolution_clock::now();
+    std::cout << podaci1.vrVektora(5) << std::endl;
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    std::cout << "Vrijeme: " << duration.count() << std::endl;
+}
